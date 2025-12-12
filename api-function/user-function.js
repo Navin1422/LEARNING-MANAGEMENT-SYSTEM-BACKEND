@@ -16,3 +16,42 @@ exports.createUser = async (req, res) => {
     });
   }
 };
+exports.adminSignup = async (req, res) => {
+  try {
+    const {
+      firstName,
+      secondName,
+      email,
+      mobileNumber,
+      collegeName,
+      password,
+    } = req.body;
+    const [checkDetails, checkUserDetails] = await Promise.all([
+      Admin.findOne({ mobileNumber, email }),
+      User.findOne({ mobileNumber, email }),
+    ]);
+    if (checkDetails || checkUserDetails) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin already exists",
+      });
+    }
+    const createAdmin = await Admin.create({
+      firstName,
+      secondName,
+      email,
+      mobileNumber,
+      collegeName,
+      password,
+    });
+    return res.status(200).json({
+      success: true,
+      message: "Admin is created",
+    });
+  } catch (e) {
+    res.status(404).json({
+      success: false,
+      error: e,
+    });
+  }
+};
