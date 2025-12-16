@@ -1,13 +1,21 @@
 const mongoose = require("mongoose");
-require("dotenv").config();
+
+// Note: dotenv is loaded in `index.js` early. We also load it here to
+// be robust if db.connect is invoked directly from another script.
+require('dotenv').config();
 
 exports.connect = async () => {
+  const uri = process.env.MONGO_URL || process.env.MONGODB_URI;
+  if (!uri) {
+    console.error('MongoDB connection string is missing. Set MONGO_URL in your .env file.');
+    return;
+  }
+
   try {
-    await mongoose.connect(process.env.MONGO_URI);
-    console.log("Db is connected");
-  } catch (e) {
-    console.log("Error in connecting to the db");
-    console.log(e);
+    await mongoose.connect(uri);
+    console.log("Database connection established");
+  } catch (err) {
+    console.error("Error connecting to the database:", err.message);
   }
 };
 
@@ -18,3 +26,5 @@ exports.connect = async () => {
 //put
 
 //delete
+
+//

@@ -1,10 +1,33 @@
+const User = require("../models/user");
+const Admin = require("../models/admin");
+
 exports.createUser = async (req, res) => {
   try {
-    const { firstName, email } = req.body;
-    const creatUser = await User.insertOne({
-      firstName: firstName,
-      email: email,
+    console.log("createUser handler called", req.path, req.body);
+    const {
+      firstName,
+      secondName,
+      email,
+      mobileNumber,
+      collegeName,
+      active,
+      password,
+    } = req.body;
+
+    const userDetails = await User.create({
+      firstName,
+      secondName,
+      email,
+      mobileNumber,
+      collegeName,
+      active: false,
+      password,
     });
+
+    await Admin.findOneAndUpdate(
+      { collegeName: collegeName },
+      { $push: { listOfRequest: userDetails._id } }
+    );
     return res.status(200).json({
       success: true,
       message: "User is created successfully",
@@ -26,6 +49,13 @@ exports.adminSignup = async (req, res) => {
       collegeName,
       password,
     } = req.body;
+    const checkCollege = await Admin.findOne({ collegeName });
+    if (checkCollege) {
+      return res.status(400).json({
+        success: false,
+        message: "Admin already exists",
+      });
+    }
     const [checkDetails, checkUserDetails] = await Promise.all([
       Admin.findOne({ mobileNumber, email }),
       User.findOne({ mobileNumber, email }),
